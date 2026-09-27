@@ -10,7 +10,7 @@ abstract: >-
 authors:
   - name: "socai-io"
     website: "https://github.com/socai-io"
-version: 0.1.9
+version: 0.1.10
 date-released: 2026-09-27
 license: MIT
 repository-code: "https://github.com/socai-io/jev-social"
