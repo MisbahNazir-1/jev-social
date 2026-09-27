@@ -516,12 +516,14 @@ function renderCard(item, index) {
   const actions = element("div", "card-actions");
   const inspect = element("button", "", "View details");
   inspect.type = "button";
+  inspect.setAttribute("aria-label", `View details for evidence ${index + 1}: ${title || 'Untitled'}`);
   inspect.addEventListener("click", () => showDetail(item, title));
   actions.append(inspect);
   const sourceUrl = firstString(item, ["url", "web_url", "share_url", "canonical_url"]);
   if (isHttpUrl(sourceUrl)) {
     const link = element("a", "", "Open source ↗");
     link.href = sourceUrl;
+    link.setAttribute("aria-label", `Open source for  evidence ${index + 1}: ${title || 'Untitled'}`);
     link.target = "_blank";
     link.rel = "noreferrer";
     actions.append(link);
