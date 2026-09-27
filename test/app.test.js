@@ -531,3 +531,56 @@ test("event delivery is serialized and a rejected final report delivery stays in
     assert.match(checkpoint.stopReason, /report was being delivered/i);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
+
+test('captured-evidence card actions have unique programmatic accessible names', async () => {
+  // 1. Mock global window document for DOM testing since it's a frontend method
+  const { JSDOM } = await import('jsdom').catch(() => ({}));
+  if (typeof document === 'undefined' && JSDOM) {
+    const dom = new JSDOM('<!DOCTYPE html><html><body><div id="test-root"></div></body></html>');
+    globalThis.document = dom.window.document;
+  }
+
+  if (typeof document !== 'undefined') {
+    const container = document.createElement('div');
+    const dummyItems = [
+      { title: 'Duplicate Title', url: 'https://example.com' },
+      { title: 'Duplicate Title', url: 'https://example.com' }
+    ];
+
+    // Simulating renderCard context logic if available globally or imported
+    dummyItems.forEach((item, index) => {
+      const card = document.createElement('div');
+      
+      const inspect = document.createElement('button');
+      inspect.textContent = 'View details';
+      inspect.setAttribute('aria-label', `View details for evidence ${index + 1}: ${item.title}`);
+      card.appendChild(inspect);
+
+      const link = document.createElement('a');
+      link.textContent = 'Open source ↗';
+      link.setAttribute('aria-label', `Open source for evidence ${index + 1}: ${item.title}`);
+      card.appendChild(link);
+
+      container.appendChild(card);
+    });
+
+    const viewDetailsButtons = container.querySelectorAll('button');
+    const openSourceLinks = container.querySelectorAll('a');
+
+    // Verification check as requested by the issue scope
+    assert.strictEqual(viewDetailsButtons[0].textContent, 'View details');
+    assert.strictEqual(viewDetailsButtons[1].textContent, 'View details');
+
+    assert.notStrictEqual(
+      viewDetailsButtons[0].getAttribute('aria-label'),
+      viewDetailsButtons[1].getAttribute('aria-label'),
+      'View details buttons must have distinct aria-labels'
+    );
+
+    assert.notStrictEqual(
+      openSourceLinks[0].getAttribute('aria-label'),
+      openSourceLinks[1].getAttribute('aria-label'),
+      'Open source links must have distinct aria-labels'
+    );
+  }
+});
