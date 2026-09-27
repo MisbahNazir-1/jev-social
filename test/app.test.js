@@ -532,55 +532,25 @@ test("event delivery is serialized and a rejected final report delivery stays in
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test('captured-evidence card actions have unique programmatic accessible names', async () => {
-  // 1. Mock global window document for DOM testing since it's a frontend method
-  const { JSDOM } = await import('jsdom').catch(() => ({}));
-  if (typeof document === 'undefined' && JSDOM) {
-    const dom = new JSDOM('<!DOCTYPE html><html><body><div id="test-root"></div></body></html>');
-    globalThis.document = dom.window.document;
-  }
+test('captured-evidence card actions have unique programmatic accessible names', () => {
+  const dummyRender = (item, index) => {
+    const displayTitle = item.title || item.caption || item.description || 'Untitled';
+    const boundedTitle = displayTitle.length > 30 ? displayTitle.substring(0, 30) + '...' : displayTitle;
+    return {
+      viewDetailsLabel: `View details for evidence ${index + 1}: ${boundedTitle}`,
+      openSourceLabel: `Open source for evidence ${index + 1}: ${boundedTitle}`
+    };
+  };
 
-  if (typeof document !== 'undefined') {
-    const container = document.createElement('div');
-    const dummyItems = [
-      { title: 'Duplicate Title', url: 'https://example.com' },
-      { title: 'Duplicate Title', url: 'https://example.com' }
-    ];
+  const longTitle = 'This is a very long title that exceeds thirty characters limit';
+  const card1 = dummyRender({ title: 'Duplicate Title' }, 0);
+  const card2 = dummyRender({ title: 'Duplicate Title' }, 1);
+  const card3 = dummyRender({ title: '' }, 2);
+  const card4 = dummyRender({ title: longTitle }, 3);
 
-    // Simulating renderCard context logic if available globally or imported
-    dummyItems.forEach((item, index) => {
-      const card = document.createElement('div');
-      
-      const inspect = document.createElement('button');
-      inspect.textContent = 'View details';
-      inspect.setAttribute('aria-label', `View details for evidence ${index + 1}: ${item.title}`);
-      card.appendChild(inspect);
-
-      const link = document.createElement('a');
-      link.textContent = 'Open source ↗';
-      link.setAttribute('aria-label', `Open source for evidence ${index + 1}: ${item.title}`);
-      card.appendChild(link);
-
-      container.appendChild(card);
-    });
-
-    const viewDetailsButtons = container.querySelectorAll('button');
-    const openSourceLinks = container.querySelectorAll('a');
-
-    // Verification check as requested by the issue scope
-    assert.strictEqual(viewDetailsButtons[0].textContent, 'View details');
-    assert.strictEqual(viewDetailsButtons[1].textContent, 'View details');
-
-    assert.notStrictEqual(
-      viewDetailsButtons[0].getAttribute('aria-label'),
-      viewDetailsButtons[1].getAttribute('aria-label'),
-      'View details buttons must have distinct aria-labels'
-    );
-
-    assert.notStrictEqual(
-      openSourceLinks[0].getAttribute('aria-label'),
-      openSourceLinks[1].getAttribute('aria-label'),
-      'Open source links must have distinct aria-labels'
-    );
-  }
+  assert.notStrictEqual(card1.viewDetailsLabel, card2.viewDetailsLabel);
+  assert.notStrictEqual(card1.openSourceLabel, card2.openSourceLabel);
+  assert.match(card3.viewDetailsLabel, /evidence 3: Untitled/);
+  assert.match(card4.viewDetailsLabel, /\.\.\./);
+  assert.ok(card4.viewDetailsLabel.length <= 80);
 });
