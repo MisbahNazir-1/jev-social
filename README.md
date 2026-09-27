@@ -135,7 +135,7 @@ npx skills add https://github.com/socai-io/jev-social/tree/v0.1.9/skills/jev-soc
 For OpenClaw, install the v0.1.9 skill from its immutable runtime commit into the current workspace:
 
 ```bash
-npx skills add https://github.com/socai-io/jev-social/tree/a4f0b0c9b1b0b7b18936d289014a7a8cbfc20d0e/skills/jev-social --skill jev-social --agent openclaw --copy
+npx skills add https://github.com/socai-io/jev-social/tree/ee7d5617f29cd0e88f4be4696f86ab45564d9db0/skills/jev-social --skill jev-social --agent openclaw --copy
 ```
 
 The skill pins the documented Jev Social CLI release, preserves its read-only and login-gate boundaries, and returns source-linked evidence instead of raw run JSON. Platform availability is checked against the installed socai CLI before a run.
