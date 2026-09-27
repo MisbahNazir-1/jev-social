@@ -81,7 +81,7 @@ npx skills add https://github.com/socai-io/jev-social/tree/v0.1.9/skills/jev-soc
 OpenClaw can install the v0.1.9 Skill from its immutable runtime commit into the current workspace:
 
 ```bash
-npx skills add https://github.com/socai-io/jev-social/tree/c411ae1532dd37ab94f8164f13552ed05f4c9ecc/skills/jev-social --skill jev-social --agent openclaw --copy
+npx skills add https://github.com/socai-io/jev-social/tree/a4f0b0c9b1b0b7b18936d289014a7a8cbfc20d0e/skills/jev-social --skill jev-social --agent openclaw --copy
 ```
 
 This is a standard Agent Skill that calls the local socai CLI, not an OpenCode or OpenClaw plugin.
