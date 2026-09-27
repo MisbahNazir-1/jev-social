@@ -506,28 +506,38 @@ function renderCard(item, index) {
   renderMediaPreview(frame, item);
   card.append(frame);
 
-  const body = element("div", "card-body");
+ const body = element("div", "card-body");
   const title = firstString(item, ["title", "caption", "description", "text", "name"]) || `Result ${index + 1}`;
   const author = authorName(item);
   body.append(element("h4", "", title));
   if (author) body.append(element("p", "author", author.startsWith("@") ? author : `@${author}`));
   const stats = renderStats(item);
   if (stats) body.append(stats);
+  
+  // ✨ Maintainer Point 2 Fix: Title ko 30 characters par bound/cap karna
+  const displayTitle = firstString(item, ["title", "caption", "description", "text", "name"]) || author || "Untitled";
+  const boundedTitle = displayTitle.length > 30 ? displayTitle.substring(0, 30) + "..." : displayTitle;
+  const resultNumber = index + 1;
+
   const actions = element("div", "card-actions");
   const inspect = element("button", "", "View details");
   inspect.type = "button";
-  inspect.setAttribute("aria-label", `View details for evidence ${index + 1}: ${title || 'Untitled'}`);
+  // ✨ Accessibility Name Injection
+  inspect.setAttribute("aria-label", `View details for evidence ${resultNumber}: ${boundedTitle}`);
   inspect.addEventListener("click", () => showDetail(item, title));
   actions.append(inspect);
+  
   const sourceUrl = firstString(item, ["url", "web_url", "share_url", "canonical_url"]);
   if (isHttpUrl(sourceUrl)) {
     const link = element("a", "", "Open source ↗");
     link.href = sourceUrl;
-    link.setAttribute("aria-label", `Open source for  evidence ${index + 1}: ${title || 'Untitled'}`);
     link.target = "_blank";
     link.rel = "noreferrer";
+    // ✨ Accessibility Name Injection (Maintainer Point 3 Fix: Double space clean-up)
+    link.setAttribute("aria-label", `Open source for evidence ${resultNumber}: ${boundedTitle}`);
     actions.append(link);
   }
+
   body.append(actions);
   card.append(body);
   return card;
