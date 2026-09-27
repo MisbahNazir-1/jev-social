@@ -29,8 +29,8 @@ Jev chooses each next operation: search, open a particular post or profile, read
 With Node 20+ and Chrome already signed in to Instagram, TikTok, or LinkedIn:
 
 ```bash
-npx github:socai-io/jev-social#v0.1.8 onboard
-npx github:socai-io/jev-social#v0.1.8
+npx github:socai-io/jev-social#v0.1.9 onboard
+npx github:socai-io/jev-social#v0.1.9
 ```
 
 Onboarding prompts for the OpenRouter key and offers to install the official `socai CLI` when it is missing. The second command opens the loopback-only demo.
@@ -110,29 +110,29 @@ Node 20+, a decision provider (OpenRouter Jev or a loopback Kev server), and a c
 Fastest OpenRouter path — no repository clone required. Onboarding prompts for the key and offers to install the official socai CLI when it is missing:
 
 ```bash
-npx github:socai-io/jev-social#v0.1.8 onboard
-npx github:socai-io/jev-social#v0.1.8
+npx github:socai-io/jev-social#v0.1.9 onboard
+npx github:socai-io/jev-social#v0.1.9
 ```
 
 To let Codex invoke the same browser-grounded workflow through GitHub CLI 2.101 or newer:
 
 ```bash
-gh skill install socai-io/jev-social jev-social@v0.1.8 --agent codex --scope user
+gh skill install socai-io/jev-social jev-social@v0.1.9 --agent codex --scope user
 ```
 
 Or install it from the [skills.sh directory](https://skills.sh/socai-io/jev-social/jev-social) with the cross-agent Skills CLI:
 
 ```bash
-npx skills add https://github.com/socai-io/jev-social/tree/v0.1.8/skills/jev-social --skill jev-social
+npx skills add https://github.com/socai-io/jev-social/tree/v0.1.9/skills/jev-social --skill jev-social
 ```
 
-For OpenCode, install the tested v0.1.8 skill into its natively discovered project skill directory:
+For OpenCode, install the tested v0.1.9 skill into its natively discovered project skill directory:
 
 ```bash
-npx skills add https://github.com/socai-io/jev-social/tree/v0.1.8/skills/jev-social --agent opencode
+npx skills add https://github.com/socai-io/jev-social/tree/v0.1.9/skills/jev-social --agent opencode
 ```
 
-For OpenClaw, install the v0.1.8 skill from its immutable release commit into the current workspace:
+For OpenClaw, install the v0.1.9 skill from its immutable runtime commit into the current workspace:
 
 ```bash
 npx skills add https://github.com/socai-io/jev-social/tree/c411ae1532dd37ab94f8164f13552ed05f4c9ecc/skills/jev-social --skill jev-social --agent openclaw --copy
@@ -152,7 +152,7 @@ npm start -- onboard
 npm start
 ```
 
-To run v0.1.8 through local [Kev](https://github.com/jaredpalmer/kev), start its TypeSafe-compatible server on loopback, then launch the tagged Jev Social release without an OpenRouter key:
+To run v0.1.9 through local [Kev](https://github.com/jaredpalmer/kev), start its TypeSafe-compatible server on loopback, then launch the tagged Jev Social release without an OpenRouter key:
 
 ```bash
 # Terminal 1
@@ -167,7 +167,7 @@ export JEV_SOCIAL_SYSTEM_ONE_URL=http://127.0.0.1:8009/v1/systemone
 export JEV_SOCIAL_SYSTEM_ONE_MODEL=kev-latest
 export JEV_SOCIAL_SYSTEM_ONE_TIMEOUT_MS=120000
 export OPENROUTER_REPORT_MODEL=off
-npx github:socai-io/jev-social#v0.1.8
+npx github:socai-io/jev-social#v0.1.9
 ```
 
 The local endpoint must be plain HTTP on `localhost`, `127.0.0.1`, or `::1`, with the exact `/v1/systemone` path. Jev Social does not send the OpenRouter key to it, rejects redirects and oversized responses, and keeps the same typed choice validation. Local inference allows up to 120 seconds by default; lower it with `JEV_SOCIAL_SYSTEM_ONE_TIMEOUT_MS`. `OPENROUTER_REPORT_MODEL=off` uses the deterministic source-linked report; the browser and social-platform traffic still runs through local `socai` and Chrome.

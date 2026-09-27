@@ -9,11 +9,10 @@ const packageJson = JSON.parse(
 const releaseTag = `v${packageJson.version}`;
 const pinnedSource = `github:socai-io/jev-social#v${packageJson.version}`;
 const pinnedSkillSource = `https://github.com/socai-io/jev-social/tree/v${packageJson.version}/skills/jev-social`;
-const releaseCommit = execFileSync(
-  "git",
-  ["rev-parse", `${releaseTag}^{commit}`],
-  { cwd: new URL("..", import.meta.url), encoding: "utf8" },
-).trim();
+const skillContents = await readFile(new URL("../skills/jev-social/SKILL.md", import.meta.url), "utf8");
+const runtimePins = skillContents.match(/github:socai-io\/jev-social#[0-9a-f]{40}/g) ?? [];
+const uniqueRuntimePins = [...new Set(runtimePins)];
+const releaseCommit = uniqueRuntimePins.length === 1 ? uniqueRuntimePins[0].split("#")[1] : "";
 const pinnedOpenClawSkillSource = `https://github.com/socai-io/jev-social/tree/${releaseCommit}/skills/jev-social`;
 const kevRepoCommit = "2855ba2a55a80579176a459f78b95d03548cabb5";
 const kevModelRevision = "139fdd94f1b6a6ad80cc15e08fcb99cac885a101";
@@ -152,10 +151,9 @@ test("OpenClaw setup uses the verified immutable release Skill command", async (
 });
 
 test("package, plugin manifests, and Agent Skill identify the current release", async () => {
-  const [codexManifest, grokManifest, skill] = await Promise.all([
+  const [codexManifest, grokManifest] = await Promise.all([
     readFile(new URL("../.codex-plugin/plugin.json", import.meta.url), "utf8").then(JSON.parse),
     readFile(new URL("../.grok-plugin/plugin.json", import.meta.url), "utf8").then(JSON.parse),
-    readFile(new URL("../skills/jev-social/SKILL.md", import.meta.url), "utf8"),
   ]);
 
   assert.equal(codexManifest.version, packageJson.version);
@@ -163,15 +161,13 @@ test("package, plugin manifests, and Agent Skill identify the current release", 
   assert.equal(codexManifest.homepage, packageJson.homepage);
   assert.equal(codexManifest.repository, "https://github.com/socai-io/jev-social");
   assert.equal(codexManifest.interface.websiteURL, packageJson.homepage);
-  assert.ok(skill.includes(`release \`${releaseTag}\``));
+  assert.ok(skillContents.includes(`release \`${releaseTag}\``));
 
-  const runtimePins = skill.match(/github:socai-io\/jev-social#[0-9a-f]{40}/g) ?? [];
   assert.ok(runtimePins.length > 0, "the Agent Skill must pin an immutable runtime commit");
-  assert.equal(new Set(runtimePins).size, 1, "all Agent Skill commands must use one runtime commit");
-  const runtimeCommit = runtimePins[0].split("#")[1];
+  assert.equal(uniqueRuntimePins.length, 1, "all Agent Skill commands must use one runtime commit");
   const runtimePackage = JSON.parse(execFileSync(
     "git",
-    ["show", `${runtimeCommit}:package.json`],
+    ["show", `${releaseCommit}:package.json`],
     { cwd: new URL("..", import.meta.url), encoding: "utf8" },
   ));
   assert.equal(
