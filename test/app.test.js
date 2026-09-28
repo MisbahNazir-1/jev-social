@@ -535,39 +535,26 @@ test("event delivery is serialized and a rejected final report delivery stays in
 test('captured-evidence card actions have unique programmatic accessible names', () => {
   const internalFs = require('node:fs');
   const internalPath = require('node:path');
-
-  const appRawSource = internalFs.readFileSync(internalPath.resolve(__dirname, '../public/app.js'), 'utf8');
-  
-  const virtualContext = { window: {} };
-  try {
-    const evaluationRunner = new Function('window', appRawSource);
-    evaluationRunner(virtualContext.window);
-  } catch (evalError) {
- 
+ const rawSourceContent = internalFs.readFileSync(internalPath.resolve(__dirname, '../public/app.js'), 'utf8');
+  const helperMatch = rawSourceContent.match(/window\.buildAccessibleLabel\s*=\s*function([\s\S]*?)(?=};)/);
+  if (!helperMatch) {
+    assert.fail("Production window.buildAccessibleLabel helper is missing or removed!");
   }
-
-  const buildLabel = virtualContext.window.buildAccessibleLabel || function(resultNum, rawTitle, actionType) {
-    const normalized = (rawTitle || "Untitled").trim();
-    const capped = normalized.length > 30 ? normalized.substring(0, 30) + "..." : normalized;
-    return actionType === "view"
-      ? `View details for evidence ${resultNum}: ${capped}`
-      : `Open source for evidence ${resultNum}: ${capped}`;
-  };
-
+ const buildLabel = new Function('resultNum', 'rawTitle', 'actionType', 
+    `const window = {}; 
+     const executable = function${helperMatch[1]}}; 
+     return executable(resultNum, rawTitle, actionType);`
+  );
   const longTitle = 'This is a very long title that exceeds thirty characters limit';
-  
-  const card1View = buildLabel(1, 'Duplicate Title', 'view');
+ const card1View = buildLabel(1, 'Duplicate Title', 'view');
   const card2View = buildLabel(2, 'Duplicate Title', 'view');
   const card1Source = buildLabel(1, 'Duplicate Title', 'source');
   const card2Source = buildLabel(2, 'Duplicate Title', 'source');
-  
   const card3View = buildLabel(3, '', 'view');
   const card4View = buildLabel(4, longTitle, 'view');
-
   assert.notStrictEqual(card1View, card2View);
   assert.notStrictEqual(card1Source, card2Source);
   assert.match(card3View, /evidence 3: Untitled/);
   assert.match(card4View, /\.\.\./);
   assert.ok(card4View.length <= 80);
 });
-
