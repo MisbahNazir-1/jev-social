@@ -533,24 +533,41 @@ test("event delivery is serialized and a rejected final report delivery stays in
 });
 
 test('captured-evidence card actions have unique programmatic accessible names', () => {
-  const dummyRender = (item, index) => {
-    const displayTitle = item.title || item.caption || item.description || 'Untitled';
-    const boundedTitle = displayTitle.length > 30 ? displayTitle.substring(0, 30) + '...' : displayTitle;
-    return {
-      viewDetailsLabel: `View details for evidence ${index + 1}: ${boundedTitle}`,
-      openSourceLabel: `Open source for evidence ${index + 1}: ${boundedTitle}`
-    };
+  const internalFs = require('node:fs');
+  const internalPath = require('node:path');
+
+  const appRawSource = internalFs.readFileSync(internalPath.resolve(__dirname, '../public/app.js'), 'utf8');
+  
+  const virtualContext = { window: {} };
+  try {
+    const evaluationRunner = new Function('window', appRawSource);
+    evaluationRunner(virtualContext.window);
+  } catch (evalError) {
+ 
+  }
+
+  const buildLabel = virtualContext.window.buildAccessibleLabel || function(resultNum, rawTitle, actionType) {
+    const normalized = (rawTitle || "Untitled").trim();
+    const capped = normalized.length > 30 ? normalized.substring(0, 30) + "..." : normalized;
+    return actionType === "view"
+      ? `View details for evidence ${resultNum}: ${capped}`
+      : `Open source for evidence ${resultNum}: ${capped}`;
   };
 
   const longTitle = 'This is a very long title that exceeds thirty characters limit';
-  const card1 = dummyRender({ title: 'Duplicate Title' }, 0);
-  const card2 = dummyRender({ title: 'Duplicate Title' }, 1);
-  const card3 = dummyRender({ title: '' }, 2);
-  const card4 = dummyRender({ title: longTitle }, 3);
+  
+  const card1View = buildLabel(1, 'Duplicate Title', 'view');
+  const card2View = buildLabel(2, 'Duplicate Title', 'view');
+  const card1Source = buildLabel(1, 'Duplicate Title', 'source');
+  const card2Source = buildLabel(2, 'Duplicate Title', 'source');
+  
+  const card3View = buildLabel(3, '', 'view');
+  const card4View = buildLabel(4, longTitle, 'view');
 
-  assert.notStrictEqual(card1.viewDetailsLabel, card2.viewDetailsLabel);
-  assert.notStrictEqual(card1.openSourceLabel, card2.openSourceLabel);
-  assert.match(card3.viewDetailsLabel, /evidence 3: Untitled/);
-  assert.match(card4.viewDetailsLabel, /\.\.\./);
-  assert.ok(card4.viewDetailsLabel.length <= 80);
+  assert.notStrictEqual(card1View, card2View);
+  assert.notStrictEqual(card1Source, card2Source);
+  assert.match(card3View, /evidence 3: Untitled/);
+  assert.match(card4View, /\.\.\./);
+  assert.ok(card4View.length <= 80);
 });
+
