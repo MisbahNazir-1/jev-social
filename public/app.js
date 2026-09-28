@@ -505,36 +505,41 @@ function renderCard(item, index) {
   const frame = element("div", "media-frame");
   renderMediaPreview(frame, item);
   card.append(frame);
-
- const body = element("div", "card-body");
+    const body = element("div", "card-body");
   const title = firstString(item, ["title", "caption", "description", "text", "name"]) || `Result ${index + 1}`;
   const author = authorName(item);
   body.append(element("h4", "", title));
   if (author) body.append(element("p", "author", author.startsWith("@") ? author : `@${author}`));
   const stats = renderStats(item);
   if (stats) body.append(stats);
-  
-  // ✨ Maintainer Point 2 Fix: Title ko 30 characters par bound/cap karna
+
   const displayTitle = firstString(item, ["title", "caption", "description", "text", "name"]) || author || "Untitled";
-  const boundedTitle = displayTitle.length > 30 ? displayTitle.substring(0, 30) + "..." : displayTitle;
   const resultNumber = index + 1;
+
+   window.buildAccessibleLabel = function(resultNum, rawTitle, actionType) {
+    const normalized = (rawTitle || "Untitled").trim();
+    const capped = normalized.length > 30 ? normalized.substring(0, 30) + "..." : normalized;
+    return actionType === "view"
+      ? `View details for evidence ${resultNum}: ${capped}`
+      : `Open source for evidence ${resultNum}: ${capped}`;
+  };
 
   const actions = element("div", "card-actions");
   const inspect = element("button", "", "View details");
   inspect.type = "button";
-  // ✨ Accessibility Name Injection
-  inspect.setAttribute("aria-label", `View details for evidence ${resultNumber}: ${boundedTitle}`);
+  
+  inspect.setAttribute("aria-label", window.buildAccessibleLabel(resultNumber, displayTitle, "view"));
   inspect.addEventListener("click", () => showDetail(item, title));
   actions.append(inspect);
-  
+
   const sourceUrl = firstString(item, ["url", "web_url", "share_url", "canonical_url"]);
   if (isHttpUrl(sourceUrl)) {
     const link = element("a", "", "Open source ↗");
     link.href = sourceUrl;
     link.target = "_blank";
     link.rel = "noreferrer";
-    // ✨ Accessibility Name Injection (Maintainer Point 3 Fix: Double space clean-up)
-    link.setAttribute("aria-label", `Open source for evidence ${resultNumber}: ${boundedTitle}`);
+    
+    link.setAttribute("aria-label", window.buildAccessibleLabel(resultNumber, displayTitle, "source"));
     actions.append(link);
   }
 
@@ -542,6 +547,7 @@ function renderCard(item, index) {
   card.append(body);
   return card;
 }
+
 
 function renderMediaPreview(frame, item, { showBadge = true } = {}) {
   const failed = new Set();
