@@ -1,3 +1,4 @@
+import { buildAccessibleLabel } from './labels.js';
 import {
   downloadReport,
   getReportMarkdown,
@@ -499,18 +500,12 @@ function renderLiveCards(items) {
 function evidenceKey(item, index) {
   return String(item.shortcode || item.video_id || item.id || item.url || item.web_url || item.share_url || `item-${index}`);
 }
-window.buildAccessibleLabel = function(resultNum, rawTitle, actionType) {
-  const normalized = (rawTitle || "Untitled").trim();
-  const capped = normalized.length > 30 ? normalized.substring(0, 30) + "..." : normalized;
-  return actionType === "view"
-    ? `View details for evidence ${resultNum}: ${capped}`
-    : `Open source for evidence ${resultNum}: ${capped}`;
-};
 function renderCard(item, index) {
-  const card = element("article", "", "card");
-  const frame = element("div", "", "media-frame");
+  const card = element("article", "card");
+  const frame = element("div", "media-frame");
   renderMediaPreview(frame, item);
   card.append(frame);
+  
   const body = element("div", "card-body");
   const title = firstString(item, ["title", "caption", "description", "text", "name"]) || `Result ${index + 1}`;
   const author = authorName(item);
@@ -518,27 +513,33 @@ function renderCard(item, index) {
   if (author) body.append(element("p", "author", author.startsWith("@") ? author : `@${author}`));
   const stats = renderStats(item);
   if (stats) body.append(stats);
+
   const displayTitle = firstString(item, ["title", "caption", "description", "text", "name"]) || author || "Untitled";
   const resultNumber = index + 1;
+
   const actions = element("div", "card-actions");
   const inspect = element("button", "", "View details");
   inspect.type = "button";
   inspect.setAttribute("aria-label", buildAccessibleLabel(resultNumber, displayTitle, "view"));
   inspect.addEventListener("click", () => showDetail(item, title));
   actions.append(inspect);
+
   const sourceUrl = firstString(item, ["url", "web_url", "share_url", "canonical_url"]);
   if (isHttpUrl(sourceUrl)) {
     const link = element("a", "", "Open source ↗");
     link.href = sourceUrl;
     link.target = "_blank";
-    link.rel = "noreferrer";   
+    link.rel = "noreferrer";
+    
     link.setAttribute("aria-label", buildAccessibleLabel(resultNumber, displayTitle, "source"));
     actions.append(link);
   }
+
   body.append(actions);
   card.append(body);
   return card;
 }
+
 function renderMediaPreview(frame, item, { showBadge = true } = {}) {
   const failed = new Set();
   const poster = posterSource(item);
