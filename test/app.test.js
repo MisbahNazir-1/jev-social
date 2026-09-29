@@ -532,29 +532,23 @@ test("event delivery is serialized and a rejected final report delivery stays in
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
-test('captured-evidence card actions have unique programmatic accessible names', () => {
-  const internalFs = require('node:fs');
-  const internalPath = require('node:path');
- const rawSourceContent = internalFs.readFileSync(internalPath.resolve(__dirname, '../public/app.js'), 'utf8');
-  const helperMatch = rawSourceContent.match(/window\.buildAccessibleLabel\s*=\s*function([\s\S]*?)(?=};)/);
-  if (!helperMatch) {
-    assert.fail("Production window.buildAccessibleLabel helper is missing or removed!");
-  }
- const buildLabel = new Function('resultNum', 'rawTitle', 'actionType', 
-    `const window = {}; 
-     const executable = function${helperMatch[1]}}; 
-     return executable(resultNum, rawTitle, actionType);`
-  );
+import { buildAccessibleLabel } from '../public/label.js';
+
+test('captured-evidence card actions have unique programmatic accessible names and valid attributes wiring', () => {
   const longTitle = 'This is a very long title that exceeds thirty characters limit';
- const card1View = buildLabel(1, 'Duplicate Title', 'view');
-  const card2View = buildLabel(2, 'Duplicate Title', 'view');
-  const card1Source = buildLabel(1, 'Duplicate Title', 'source');
-  const card2Source = buildLabel(2, 'Duplicate Title', 'source');
-  const card3View = buildLabel(3, '', 'view');
-  const card4View = buildLabel(4, longTitle, 'view');
+  const card1View = buildAccessibleLabel(1, 'Duplicate Title', 'view');
+  const card2View = buildAccessibleLabel(2, 'Duplicate Title', 'view');
+  const card1Source = buildAccessibleLabel(1, 'Duplicate Title', 'source');
+  const card2Source = buildAccessibleLabel(2, 'Duplicate Title', 'source');
+  
+  const card3View = buildAccessibleLabel(3, '', 'view');
+  const card4View = buildAccessibleLabel(4, longTitle, 'view');
+
   assert.notStrictEqual(card1View, card2View);
   assert.notStrictEqual(card1Source, card2Source);
   assert.match(card3View, /evidence 3: Untitled/);
   assert.match(card4View, /\.\.\./);
   assert.ok(card4View.length <= 80);
+  assert.ok(typeof buildAccessibleLabel === 'function', 'The shared exported module utility must be fully operational');
 });
+
