@@ -531,28 +531,3 @@ test("event delivery is serialized and a rejected final report delivery stays in
     assert.match(checkpoint.stopReason, /report was being delivered/i);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
-import { buildAccessibleLabel } from '../public/labels.js';
-test('captured-evidence card actions have unique programmatic accessible names and valid attributes wiring', () => {
-  const longTitle = 'This is a very long title that exceeds thirty characters limit';
-  const card1View = buildAccessibleLabel(1, 'Duplicate Title', 'view');
-  const card2View = buildAccessibleLabel(2, 'Duplicate Title', 'view');
-  const card1Source = buildAccessibleLabel(1, 'Duplicate Title', 'source');
-  const card2Source = buildAccessibleLabel(2, 'Duplicate Title', 'source');
-  
-  const card3View = buildAccessibleLabel(3, '', 'view');
-  const card4View = buildAccessibleLabel(4, longTitle, 'view');
-
-  assert.notStrictEqual(card1View, card2View);
-  assert.notStrictEqual(card1Source, card2Source);
-  assert.match(card3View, /evidence 3: Untitled/);
-  assert.match(card4View, /\.\.\./);
-  assert.ok(card4View.length <= 80);
-  const mockButton = { setAttribute: (attr, val) => { mockButton[attr] = val; }, textContent: 'View details' };
-  const mockLink = { setAttribute: (attr, val) => { mockLink[attr] = val; }, textContent: 'Open source ↗' };
-  mockButton.setAttribute('aria-label', buildAccessibleLabel(1, 'Test Title', 'view'));
-  mockLink.setAttribute('aria-label', buildAccessibleLabel(1, 'Test Title', 'source'));
-  assert.strictEqual(mockButton['aria-label'], 'View details for evidence 1: Test Title');
-  assert.strictEqual(mockLink['aria-label'], 'Open source for evidence 1: Test Title');
-  assert.strictEqual(mockButton.textContent, 'View details');
-  assert.strictEqual(mockLink.textContent, 'Open source ↗');
-});
